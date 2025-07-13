@@ -11,7 +11,7 @@ import SwiftUI
 struct PisionTest2App: App {
   var body: some Scene {
     WindowGroup {
-      MainView(viewModel: MainViewModel())
+      MainView(viewModel: MainViewModel()) // 뷰모델 주입 
     }
   }
 }
