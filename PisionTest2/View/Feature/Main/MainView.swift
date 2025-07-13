@@ -7,11 +7,15 @@
 
 import AVFoundation
 import SwiftUI
+import CoreML
 
 struct MainView: View {
   @State private var currentState = "Snooze"
+  @StateObject private var viewModel: MainViewModel
   
-  @StateObject private var cameraManager = CameraManager()
+  init(viewModel: MainViewModel) {
+    _viewModel = StateObject(wrappedValue: viewModel)
+  }
 }
 
 extension MainView {
@@ -20,25 +24,24 @@ extension MainView {
       Color.clear.ignoresSafeArea()
       
       VStack {
-        CameraView(session: cameraManager.session)
+        CameraView(session: viewModel.session)
         
         VStack {
-          Text("rolls: \(cameraManager.rollAngles)") // 고개를 좌/우로 기울이는 동작
-          Text("yaw: \(cameraManager.yawAngles)") // 고개를 좌/우로 도리도리 하는 동작
+          Text("rolls: \(viewModel.rollAngles)") // 고개를 좌/우로 기울이는 동작
+          Text("yaw: \(viewModel.yawAngles)") // 고개를 좌/우로 도리도리 하는 동작
         }
         .font(.headline)
       }
     }
     .onAppear {
-      cameraManager.requestAndCheckPermissions()
-      cameraManager.startSession()
+      viewModel.start()
     }
     .onDisappear {
-      cameraManager.stopSession()
+      viewModel.stop()
     }
   }
 }
 
 #Preview {
-  MainView()
+  MainView(viewModel: MainViewModel())
 }

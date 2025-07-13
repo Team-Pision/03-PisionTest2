@@ -11,7 +11,7 @@ import SwiftUI
 struct PisionTest2App: App {
   var body: some Scene {
     WindowGroup {
-      MainView()
+      MainView(viewModel: MainViewModel())
     }
   }
 }
