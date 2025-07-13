@@ -10,21 +10,26 @@ import SwiftUI
 import Vision
 
 final class CameraManager: NSObject, ObservableObject {
-  @Published var faces: [VNFaceObservation] = []
-  @Published var yawAngles: [Double] = []
-  @Published var rollAngles: [Double] = []
-  
   let session = AVCaptureSession()
   
   private let videoOutput = AVCaptureVideoDataOutput()
   private var isSeesionConfigured = false
   private let sessionQueue = DispatchQueue(label: "CameraSessionQueue")
   
-  private let request = VNDetectFaceLandmarksRequest()
-  private let sequenceHandler = VNSequenceRequestHandler()
+  private let visionManager = VisionManager()
+  
+  var onYawsUpdate: (([Double]) -> Void)?
+  var onRollsUpdate: (([Double]) -> Void)?
   
   override init() {
     super.init()
+    
+    visionManager.onFaceDetection = { [weak self] _, yaws, rolls in
+      DispatchQueue.main.async {
+        self?.onYawsUpdate?(yaws)
+        self?.onRollsUpdate?(rolls)
+      }
+    }
   }
   
   func startSession() {
@@ -113,30 +118,6 @@ extension CameraManager {
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
     guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    
-    do {
-      try sequenceHandler.perform([request], on: pixelBuffer)
-      if let results = request.results as? [VNFaceObservation] {
-        var yaws: [Double] = []
-        var rolls: [Double] = []
-        
-        for face in results {
-          if let yaw = face.yaw?.doubleValue {
-            yaws.append(yaw * 180 / .pi)
-          }
-          
-          if let roll = face.roll?.doubleValue {
-            rolls.append(roll * 180 / .pi)
-          }
-        }
-        DispatchQueue.main.async { [weak self] in
-          self?.faces = results
-          self?.yawAngles = yaws
-          self?.rollAngles = rolls
-        }
-      }
-    } catch {
-      print("Log: Vision 처리 에러")
-    }
+    visionManager.process(pixelBuffer: pixelBuffer)
   }
 }
