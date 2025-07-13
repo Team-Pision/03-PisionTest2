@@ -9,16 +9,22 @@ import Foundation
 import Vision
 
 final class VisionManager {
-  private let request = VNDetectFaceLandmarksRequest()
-  private let sequenceHandler = VNSequenceRequestHandler()
+  private let faceRequest = VNDetectFaceLandmarksRequest() // 얼굴 인식 request 값
+  private let poseRequest = VNDetectHumanBodyPoseRequest() // 포즈 인식 request 값
+  private let sequenceHandler = VNSequenceRequestHandler() // 비전 시퀸스 처리 핸들러 객체
   
+  /*
+   비전 분석 결과를 외부로 전달하는 클로저
+   CameraManager로 전달하기 위한 클로저임
+   */
   var onFaceDetection: ((_ observation: [VNFaceObservation], _ yaws: [Double], _ rolls: [Double]) -> Void)?
+  var onPoseDetection: ((_ observation: VNHumanBodyPoseObservation) -> Void)?
   
-  func process(pixelBuffer: CVPixelBuffer) {
+  func processFaceLandMark(pixelBuffer: CVPixelBuffer) {
     do {
-      try sequenceHandler.perform([request], on: pixelBuffer)
+      try sequenceHandler.perform([faceRequest], on: pixelBuffer)
       
-      guard let result = request.results else { return }
+      guard let result = faceRequest.results else { return }
       
       var yaws: [Double] = []
       var rolls: [Double] = []
@@ -35,7 +41,20 @@ final class VisionManager {
     
       onFaceDetection?(result, yaws, rolls)
     } catch {
-      print("Log: Vision 처리 에러")
+      print("Log: Vision Face 처리 에러")
+    }
+  }
+  
+  func processBodyPose(pixelBuffer: CVPixelBuffer) {
+    do {
+      try sequenceHandler.perform([poseRequest], on: pixelBuffer)
+      
+      guard let result = poseRequest.results,
+            let first = result.first else { return }
+      
+      onPoseDetection?(first)
+    } catch {
+      print("Log: Vision Pose 처리 에러")
     }
   }
 }
