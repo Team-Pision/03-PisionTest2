@@ -18,16 +18,29 @@ final class CameraManager: NSObject, ObservableObject {
   
   private let visionManager = VisionManager()
   
+  /*
+   Vision 처리 결과를 외부로 넘겨주기 위한 클로저
+   Vision 처리 값을 외부 객체나 ViewModel에서 사용할 수 있도록 전달합니다
+   */
   var onYawsUpdate: (([Double]) -> Void)?
   var onRollsUpdate: (([Double]) -> Void)?
+  var onPoseUpdate: ((VNHumanBodyPoseObservation) -> Void)?
   
   override init() {
     super.init()
     
+    // 비전매니저에서 비전 분석 결과를 클로저로 받아와서 처리 결과를 클로저로 외부(여기서는 뷰모델에 전달할거임)에 전달
+    // 각 클로저는 ViewModel에서 처리함
     visionManager.onFaceDetection = { [weak self] _, yaws, rolls in
       DispatchQueue.main.async {
         self?.onYawsUpdate?(yaws)
         self?.onRollsUpdate?(rolls)
+      }
+    }
+    
+    visionManager.onPoseDetection = { [weak self] observation in
+      DispatchQueue.main.async {
+        self?.onPoseUpdate?(observation)
       }
     }
   }
@@ -118,6 +131,7 @@ extension CameraManager {
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
     guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    visionManager.process(pixelBuffer: pixelBuffer)
+    visionManager.processFaceLandMark(pixelBuffer: pixelBuffer)
+    visionManager.processBodyPose(pixelBuffer: pixelBuffer)
   }
 }
