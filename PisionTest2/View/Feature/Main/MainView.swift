@@ -29,6 +29,8 @@ extension MainView {
         VStack {
           Text("rolls: \(viewModel.rollAngles)") // 고개를 좌/우로 기울이는 동작
           Text("yaw: \(viewModel.yawAngles)") // 고개를 좌/우로 도리도리 하는 동작
+          Text("Pose: \(viewModel.predictedLabel)")
+          Text("Pose%: \(viewModel.predictionConfidence)")
         }
         .font(.headline)
       }
