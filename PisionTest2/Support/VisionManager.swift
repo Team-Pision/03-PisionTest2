@@ -17,8 +17,8 @@ final class VisionManager {
    비전 분석 결과를 외부로 전달하는 클로저
    CameraManager로 전달하기 위한 클로저임
    */
-  var onFaceDetection: ((_ observation: [VNFaceObservation], _ yaws: [Double], _ rolls: [Double]) -> Void)?
-  var onPoseDetection: ((_ observation: VNHumanBodyPoseObservation) -> Void)?
+  var onFaceDetection: (([VNFaceObservation], [Double], [Double]) -> Void)?
+  var onPoseDetection: ((VNHumanBodyPoseObservation) -> Void)?
   
   func processFaceLandMark(pixelBuffer: CVPixelBuffer) {
     do {
