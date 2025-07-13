@@ -12,7 +12,6 @@ import Vision
 final class MainViewModel: ObservableObject {
   @Published var yawAngles: [Double] = []
   @Published var rollAngles: [Double] = []
-  @Published var poses: VNHumanBodyPoseObservation?
   @Published var predictedLabel: String = "-"
   @Published var predictionConfidence: Double = 0.0
 
